@@ -26,7 +26,7 @@
   var tallasList = E.TALLAS;
 
   var SECS = [
-    { id: 'com', t: 'Comensales', open: true, f: [
+    { id: 'com', t: 'Comensales', f: [
       { k: 'n_adultos', t: 'int', l: 'Adultos', min: 0, max: 100, ev: 'F' },
       { k: 'n_ninos_mayores', t: 'int', l: 'Niños 6-12 años', min: 0, max: 50, ev: 'I', h: 'Cuentan como 0,6 de una ración de adulto.' },
       { k: 'n_ninos_pequenos', t: 'int', l: 'Niños < 6 años', min: 0, max: 50, ev: 'I', h: 'Cuentan como 0,4.' },
@@ -39,7 +39,7 @@
       { k: 'ritmo_servicio', t: 'enum', l: 'Ritmo del servicio', ev: 'F', o: O([['inmediato', 'Inmediato'], ['espera_10_min', 'Espera de ~10 min'], ['espera_20_min_o_mas', 'Espera de 20 min o más'], ['a_domicilio', 'A domicilio']]) },
       { k: 'ocasion', t: 'enum', l: 'Ocasión', ev: 'P', o: O([['familiar', 'Familiar'], ['comida_diaria', 'Comida diaria'], ['evento_grande', 'Evento grande'], ['concurso', 'Concurso']]) }
     ] },
-    { id: 'pae', t: 'Paella (utensilio)', open: true, f: [
+    { id: 'pae', t: 'Paella (utensilio)', f: [
       { k: 'paella_diametro_cm', t: 'auto', l: 'Diámetro de la paella', min: 20, max: 140, u: 'cm', ev: 'F', list: 'tallas', hint: 'diam', h: 'Vacío = recomendada para tu arroz. Tallas comerciales: 28 a 130 cm.' },
       { k: 'paella_base_cm', t: 'auto', l: 'Base plana', min: 15, max: 130, u: 'cm', ev: 'F', h: 'Vacío = estimada (≈ 82 % del diámetro). Mídela para más precisión.' },
       { k: 'capa_objetivo', t: 'enum', l: 'Capa de arroz deseada', ev: 'F', o: O([['fina', 'Fina (1-1,5 cm)'], ['media', 'Media (~2 cm)'], ['gruesa', 'Gruesa (> 2 cm)']]), h: 'Solo afecta a la recomendación de diámetro.' },
