@@ -1,6 +1,6 @@
 /* Service worker: la app funciona sin conexión tras la primera visita.
    Al cambiar cualquier archivo, sube el número de VERSION para que los usuarios reciban la actualización. */
-const VERSION = 'paella-v1';
+const VERSION = 'paella-v2';
 const ASSETS = ['./', 'index.html', 'engine.js', 'app.js', 'manifest.webmanifest', 'icon.svg',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png'];
 

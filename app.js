@@ -17,7 +17,7 @@
   var S = Object.assign({}, E.DEFAULTS, saved || {});
   if (!saved) S.estacion = E.seasonFromDate();
   var R = null;
-  var openIds = {};
+  var openIds = { desglose: false, ficha: false, perfil: false }; /* tarjetas secundarias plegadas por defecto */
 
   /* ───────── Esquema de campos ───────── */
   var O = function (arr) { return arr.map(function (p) { return Array.isArray(p) ? { v: p[0], l: p[1] } : { v: p, l: p }; }); };
@@ -28,12 +28,12 @@
   var SECS = [
     { id: 'com', t: 'Comensales', open: true, f: [
       { k: 'n_adultos', t: 'int', l: 'Adultos', min: 0, max: 100, ev: 'F' },
-      { k: 'n_ninos_mayores', t: 'int', l: 'Niños de 6 a 12 años', min: 0, max: 50, ev: 'I', h: 'Cuentan como 0,6 de una ración de adulto.' },
-      { k: 'n_ninos_pequenos', t: 'int', l: 'Niños de menos de 6 años', min: 0, max: 50, ev: 'I', h: 'Cuentan como 0,4.' },
+      { k: 'n_ninos_mayores', t: 'int', l: 'Niños 6-12 años', min: 0, max: 50, ev: 'I', h: 'Cuentan como 0,6 de una ración de adulto.' },
+      { k: 'n_ninos_pequenos', t: 'int', l: 'Niños < 6 años', min: 0, max: 50, ev: 'I', h: 'Cuentan como 0,4.' },
       { k: 'apetito', t: 'enum', l: 'Apetito del grupo', ev: 'I', o: O([['ligero', 'Ligero (×0,8)'], ['normal', 'Normal (×1)'], ['grande', 'Grande (×1,2)']]) },
-      { k: 'tipo_comida', t: 'enum', l: 'Papel de la paella en la comida', ev: 'F', o: O([['plato_unico', 'Plato único (100 g/pers.)'], ['con_entrantes_postre', 'Con entrantes y postre (80 g)'], ['degustacion', 'Degustación (50 g)']]) },
+      { k: 'tipo_comida', t: 'enum', l: 'Papel en la comida', ev: 'F', o: O([['plato_unico', 'Plato único (100 g/pers.)'], ['con_entrantes_postre', 'Con entrantes y postre (80 g)'], ['degustacion', 'Degustación (50 g)']]) },
       { k: 'arroz_g_persona_override', t: 'auto', l: 'Arroz por persona (g)', min: 0, max: 130, u: 'g', ev: 'F', h: 'Déjalo vacío para usar el valor según el tipo de comida.' },
-      { k: 'margen_invitados', t: 'num', l: 'Margen por invitados sin confirmar', min: 0, max: 25, u: '%', ev: 'I' },
+      { k: 'margen_invitados', t: 'num', l: 'Margen invitados', min: 0, max: 25, u: '%', ev: 'I' },
       { k: 'repetir', t: 'bool', l: 'Se espera repetir plato (+12 %)', ev: 'I' },
       { k: 'dietas', t: 'multi', l: 'Restricciones del grupo', ev: 'P', o: O([['sin_gluten', 'Sin gluten'], ['sin_carne_de_conejo', 'Sin conejo'], ['sin_caracoles', 'Sin caracoles'], ['vegetariano', 'Vegetariano'], ['sin_cerdo', 'Sin cerdo'], ['alergia_frutos_secos', 'Alergia a frutos secos']]) },
       { k: 'ritmo_servicio', t: 'enum', l: 'Ritmo del servicio', ev: 'F', o: O([['inmediato', 'Inmediato'], ['espera_10_min', 'Espera de ~10 min'], ['espera_20_min_o_mas', 'Espera de 20 min o más'], ['a_domicilio', 'A domicilio']]) },
@@ -41,7 +41,7 @@
     ] },
     { id: 'pae', t: 'Paella (utensilio)', open: true, f: [
       { k: 'paella_diametro_cm', t: 'auto', l: 'Diámetro de la paella', min: 20, max: 140, u: 'cm', ev: 'F', list: 'tallas', hint: 'diam', h: 'Vacío = recomendada para tu arroz. Tallas comerciales: 28 a 130 cm.' },
-      { k: 'paella_base_cm', t: 'auto', l: 'Diámetro de la base plana', min: 15, max: 130, u: 'cm', ev: 'F', h: 'Vacío = estimada (≈ 82 % del diámetro). Mídela para más precisión.' },
+      { k: 'paella_base_cm', t: 'auto', l: 'Base plana', min: 15, max: 130, u: 'cm', ev: 'F', h: 'Vacío = estimada (≈ 82 % del diámetro). Mídela para más precisión.' },
       { k: 'capa_objetivo', t: 'enum', l: 'Capa de arroz deseada', ev: 'F', o: O([['fina', 'Fina (1-1,5 cm)'], ['media', 'Media (~2 cm)'], ['gruesa', 'Gruesa (> 2 cm)']]), h: 'Solo afecta a la recomendación de diámetro.' },
       { k: 'paella_material', t: 'enum', l: 'Material', ev: 'P', o: O([['acero_pulido', 'Acero pulido'], ['acero_esmaltado', 'Acero esmaltado'], ['acero_inox', 'Acero inox con fondo difusor'], ['hierro', 'Hierro'], ['aluminio_difusor', 'Aluminio con difusor'], ['antiadherente', 'Antiadherente']]) },
       { k: 'paella_fondo', t: 'enum', l: 'Forma del fondo', ev: 'F', o: O([['concavo', 'Cóncavo (tradicional)'], ['plano_induccion', 'Plano (inducción)']]) },
@@ -155,6 +155,7 @@
   function fieldHtml(f) {
     if (f.sub) return '<div class="sub fld" data-sub="1">' + esc(f.sub) + '</div>';
     var id = 'i-' + f.k, v = S[f.k], h = '';
+    var wide = (f.t === 'enum' || f.t === 'nenum') && f.o.some(function (o) { return String(o.l).length > 22; }) ? ' wide' : '';
     var label = '<label class="l" for="' + id + '">' + esc(f.l) + ' ' + evBadge(f.ev) + '</label>';
     var attrs = ' id="' + id + '" data-k="' + f.k + '" data-t="' + f.t + '"';
     if (f.t === 'int' || f.t === 'num' || f.t === 'auto') {
@@ -172,7 +173,7 @@
       h = '<div class="chips">' + f.o.map(function (o) { return '<label class="chip"><input type="checkbox" data-k="' + f.k + '" data-t="multi" data-v="' + esc(o.v) + '"' + ((v || []).indexOf(o.v) >= 0 ? ' checked' : '') + '>' + esc(o.l) + '</label>'; }).join('') + '</div>';
       label = '<div class="l">' + esc(f.l) + ' ' + evBadge(f.ev) + '</div>';
     }
-    return '<div class="fld" data-f="' + f.k + '">' + label + h + (f.h ? '<div class="h">' + esc(f.h) + '</div>' : '') + (f.hint ? '<div class="h" id="hint-' + f.k + '"></div>' : '') + '</div>';
+    return '<div class="fld' + wide + '" data-f="' + f.k + '">' + label + h + (f.h ? '<div class="h">' + esc(f.h) + '</div>' : '') + (f.hint ? '<div class="h" id="hint-' + f.k + '"></div>' : '') + '</div>';
   }
 
   function buildForm() {
